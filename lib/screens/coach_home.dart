@@ -188,6 +188,12 @@ class _CoachHomeState extends State<CoachHome> {
                               final course = ins['cour'];
                               final abonnement = ins['abonnement'];
 
+                              String abonnementText = 'غير محدد';
+                              if (abonnement != null) {
+                                final String nom = abonnement['nom'] ?? 'غير محدد';
+                                final String prix = abonnement['prix']?.toString() ?? '0';
+                                abonnementText = '$nom ($prix د.م)';
+                              }
                               return Card(
                                 elevation: 3,
                                 margin: EdgeInsets.symmetric(vertical: 6),
@@ -218,7 +224,7 @@ class _CoachHomeState extends State<CoachHome> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text('التاريخ: ${ins['date_inscription']}'),
-                                          Text('الاشتراك: ${abonnement['nom']} (${abonnement['prix']} د.م)'),
+                                          Text('الاشتراك: $abonnementText'),
                                           SizedBox(height: 12),
                                           if (ins['etat'] == 'en attente')
                                             Row(

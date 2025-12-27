@@ -190,9 +190,50 @@ Future<void> addSalle() async {
                   SizedBox(height: 12),
                   TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'اسم الدورة', border: OutlineInputBorder())),
                   SizedBox(height: 12),
-                  TextField(controller: horaireDebCtrl, decoration: InputDecoration(labelText: 'وقت البداية (HH:MM)', border: OutlineInputBorder())),
+TextField(
+  controller: horaireDebCtrl,
+  readOnly: true,
+  decoration: InputDecoration(
+    labelText: 'وقت البداية',
+    suffixIcon: Icon(Icons.access_time),
+    border: OutlineInputBorder(),
+  ),
+  onTap: () async {
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (picked != null) {
+      final hour = picked.hour.toString().padLeft(2, '0');
+      final minute = picked.minute.toString().padLeft(2, '0');
+      horaireDebCtrl.text = '$hour:$minute'; // ✔ HH:mm
+    }
+  },
+),
                   SizedBox(height: 12),
-                  TextField(controller: horaireFinCtrl, decoration: InputDecoration(labelText: 'وقت النهاية (HH:MM)', border: OutlineInputBorder())),
+                  TextField(
+  controller: horaireFinCtrl,
+  readOnly: true,
+  decoration: InputDecoration(
+    labelText: 'وقت النهاية',
+    suffixIcon: Icon(Icons.access_time),
+    border: OutlineInputBorder(),
+  ),
+  onTap: () async {
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (picked != null) {
+      final hour = picked.hour.toString().padLeft(2, '0');
+      final minute = picked.minute.toString().padLeft(2, '0');
+      horaireFinCtrl.text = '$hour:$minute'; // ✔ HH:mm
+    }
+  },
+),
+
                   SizedBox(height: 12),
                   TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'السعة', border: OutlineInputBorder()), keyboardType: TextInputType.number),
                   SizedBox(height: 20),
@@ -591,7 +632,6 @@ void editCourse(Map<dynamic, dynamic> originalCour) async {
   'Accept': 'application/json', // ← هذا السطر مهم جدًا!
 });
 
-request.fields['_method'] = 'PUT';
 
                       request.fields['coach_id'] = selectedCoach['id'].toString();
                       request.fields['salle_id'] = selectedSalle['id'].toString();
@@ -635,10 +675,8 @@ print('Response Body: $respBody');
                           SnackBar(content: Text('تم تعديل الدورة بنجاح'), backgroundColor: Colors.green),
                         );
                       } else {
-                        final respBody = await response.stream.bytesToString();
-                        print('Error: $respBody');
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(respBody), backgroundColor: Colors.red),
+                          SnackBar(content: Text('${response.statusCode}'), backgroundColor: Colors.red),
                         );
                       }
                     },
