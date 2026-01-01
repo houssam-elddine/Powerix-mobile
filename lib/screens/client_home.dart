@@ -4,10 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:http/http.dart' as http;
 import '../providers/auth_provider.dart';
 import 'salle_details_screen.dart'; // سننشئها لاحقًا
-import 'cour_details_screen.dart';   // سننشئها لاحقًا
 import 'my_inscriptions_screen.dart'; // صفحة اشتراكاتي
 import 'account_screen.dart';         // صفحة الحساب
 
@@ -169,75 +167,6 @@ class _ClientHomeState extends State<ClientHome> {
                   ),
 
                   SizedBox(height: 40),
-
-                  // قسم الدورات
-                  Text('الدورات المتاحة', style: TextStyle(color: accentColor, fontSize: 22, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 12),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: courses.length,
-                    itemBuilder: (ctx, i) {
-                      final cour = courses[i];
-                      final salle = cour['salle'];
-                      final abonnement = cour['abonnement'].isNotEmpty ? cour['abonnement'][0] : null;
-
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CourDetailsScreen(cour: cour),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          margin: EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(colors: [Color(0xFF003366), Color(0xFF002244)]),
-                            boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 6))],
-                          ),
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.horizontal(left: Radius.circular(20)),
-                                child: CachedNetworkImage(
-                                  imageUrl: 'http://192.168.1.15:8000/storage/${cour['img']}',
-                                  width: 130,
-                                  height: 160,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(cour['nom'], style: TextStyle(color: accentColor, fontSize: 18, fontWeight: FontWeight.bold)),
-                                      SizedBox(height: 8),
-                                      Text('في: ${salle['nom']}', style: TextStyle(color: Colors.white70)),
-                                      Text('${cour['horaire_deb']} - ${cour['horaire_fin']}', style: TextStyle(color: Colors.white70)),
-                                      Text('سعة: ${cour['capacite']} شخص', style: TextStyle(color: Colors.white70)),
-                                      if (abonnement != null)
-                                        Text('${abonnement['nom']} • ${abonnement['prix']} د.م / ${abonnement['duree']} شهر', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Icon(Icons.arrow_forward_ios, color: Colors.white70),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  SizedBox(height: 80), // مسافة للـ Bottom Nav
                 ],
               ),
             ),

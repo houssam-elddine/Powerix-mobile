@@ -40,26 +40,40 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'email': email, 'password': password}),
-    );
+    try{
+      final response = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': password}),
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      _token = data['token'];
-      _user = data['user'];
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        _token = data['token'];
+        _user = data['user'];
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', _token!);
-      await prefs.setString('user', json.encode(_user));
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', _token!);
+        await prefs.setString('user', json.encode(_user));
 
-      notifyListeners();
-    } else {
-      final error = json.decode(response.body)['message'] ?? 'بيانات الدخول غير صحيحة';
-      throw Exception(error);
+        notifyListeners();
+      } else {
+        final error = json.decode(response.body)['message'] ?? 'بيانات الدخول غير صحيحة';
+        throw Exception(error);
+      }
+    } catch (e) {
+      print('Login error: $e');
+      throw Exception(e.toString()); // أو return false لو عايز
     }
+  }
+
+  void updateUser(Map<String, dynamic> newUserData) {
+    _user = newUserData;
+    notifyListeners();
+
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('user', json.encode(_user));
+    });
   }
 
   Future<void> logout() async {
