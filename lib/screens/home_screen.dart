@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gym App'),
+        title: Text('Powerix'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout),

@@ -9,7 +9,7 @@ class AuthProvider with ChangeNotifier {
   String? _token;
   Map<String, dynamic>? _user;
 
-  final String baseUrl = 'http://192.168.1.15:8000/api'; // غيّر إذا لزم الأمر
+  final String baseUrl = 'http://10.0.2.2:8000/api'; // غيّر إذا لزم الأمر
 
   bool get isAuthenticated => _token != null;
   String? get role => _user?['role'];

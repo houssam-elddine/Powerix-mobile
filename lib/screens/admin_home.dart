@@ -1,5 +1,3 @@
-// lib/screens/admin_home.dart
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -8,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../providers/auth_provider.dart';
+import 'profile_edit_screen.dart';
 
 extension ListExtension on List {
   dynamic firstWhereOrNull(bool Function(dynamic) test) {
@@ -17,6 +16,7 @@ extension ListExtension on List {
     return null;
   }
 }
+
 class AdminHome extends StatefulWidget {
   @override
   _AdminHomeState createState() => _AdminHomeState();
@@ -64,7 +64,7 @@ class _AdminHomeState extends State<AdminHome> with SingleTickerProviderStateMix
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في تحميل البيانات'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text('Erreur de chargement des données'), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -72,7 +72,7 @@ class _AdminHomeState extends State<AdminHome> with SingleTickerProviderStateMix
     }
   }
 
-Future<void> addSalle() async {
+  Future<void> addSalle() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
@@ -84,22 +84,22 @@ Future<void> addSalle() async {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('إضافة صالة جديدة', textAlign: TextAlign.center),
+        title: Text('Ajouter une nouvelle salle', textAlign: TextAlign.center),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'اسم الصالة', border: OutlineInputBorder())),
+            TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'Nom de la salle', border: OutlineInputBorder())),
             SizedBox(height: 12),
-            TextField(controller: addressCtrl, decoration: InputDecoration(labelText: 'العنوان', border: OutlineInputBorder())),
+            TextField(controller: addressCtrl, decoration: InputDecoration(labelText: 'Adresse', border: OutlineInputBorder())),
             SizedBox(height: 12),
-            TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'السعة', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+            TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'Capacité', border: OutlineInputBorder()), keyboardType: TextInputType.number),
           ]),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Annuler')),
           ElevatedButton(
             onPressed: () async {
               if (nomCtrl.text.isEmpty || addressCtrl.text.isEmpty || capaciteCtrl.text.isEmpty) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('املأ جميع الحقول')));
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Veuillez remplir tous les champs')));
                 return;
               }
 
@@ -116,19 +116,18 @@ Future<void> addSalle() async {
               if (response.statusCode == 201) {
                 Navigator.pop(ctx);
                 fetchAllData();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم إضافة الصالة بنجاح'), backgroundColor: Colors.green));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Salle ajoutée avec succès'), backgroundColor: Colors.green));
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الإضافة'), backgroundColor: Colors.red));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Échec de l\'ajout'), backgroundColor: Colors.red));
               }
             },
-            child: Text('إضافة'),
+            child: Text('Ajouter'),
           ),
         ],
       ),
     );
   }
 
-  // إضافة دورة مع عدة اشتراكات (array)
   Future<void> addCourse() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
@@ -139,7 +138,6 @@ Future<void> addSalle() async {
     final horaireFinCtrl = TextEditingController();
     final capaciteCtrl = TextEditingController();
 
-    // قائمة ديناميكية للاشتراكات
     List<Map<String, TextEditingController>> abonnements = [
       {'nom': TextEditingController(), 'prix': TextEditingController(), 'duree': TextEditingController()}
     ];
@@ -171,78 +169,73 @@ Future<void> addSalle() async {
           }
 
           return AlertDialog(
-            title: Text('إضافة دورة جديدة'),
+            title: Text('Ajouter un nouveau cours'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<dynamic>(
-                    decoration: InputDecoration(labelText: 'المدرب', border: OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: 'Coach', border: OutlineInputBorder()),
                     items: coachesList.map((coach) => DropdownMenuItem(value: coach, child: Text(coach['name']))).toList(),
                     onChanged: (value) => setStateDialog(() => selectedCoach = value),
                   ),
                   SizedBox(height: 12),
                   DropdownButtonFormField<dynamic>(
-                    decoration: InputDecoration(labelText: 'الصالة', border: OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: 'Salle', border: OutlineInputBorder()),
                     items: sallesList.map((salle) => DropdownMenuItem(value: salle, child: Text(salle['nom']))).toList(),
                     onChanged: (value) => setStateDialog(() => selectedSalle = value),
                   ),
                   SizedBox(height: 12),
-                  TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'اسم الدورة', border: OutlineInputBorder())),
-                  SizedBox(height: 12),
-TextField(
-  controller: horaireDebCtrl,
-  readOnly: true,
-  decoration: InputDecoration(
-    labelText: 'وقت البداية',
-    suffixIcon: Icon(Icons.access_time),
-    border: OutlineInputBorder(),
-  ),
-  onTap: () async {
-    TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (picked != null) {
-      final hour = picked.hour.toString().padLeft(2, '0');
-      final minute = picked.minute.toString().padLeft(2, '0');
-      horaireDebCtrl.text = '$hour:$minute'; // ✔ HH:mm
-    }
-  },
-),
+                  TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'Nom du cours', border: OutlineInputBorder())),
                   SizedBox(height: 12),
                   TextField(
-  controller: horaireFinCtrl,
-  readOnly: true,
-  decoration: InputDecoration(
-    labelText: 'وقت النهاية',
-    suffixIcon: Icon(Icons.access_time),
-    border: OutlineInputBorder(),
-  ),
-  onTap: () async {
-    TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (picked != null) {
-      final hour = picked.hour.toString().padLeft(2, '0');
-      final minute = picked.minute.toString().padLeft(2, '0');
-      horaireFinCtrl.text = '$hour:$minute'; // ✔ HH:mm
-    }
-  },
-),
-
+                    controller: horaireDebCtrl,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Heure de début',
+                      suffixIcon: Icon(Icons.access_time),
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () async {
+                      TimeOfDay? picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (picked != null) {
+                        final hour = picked.hour.toString().padLeft(2, '0');
+                        final minute = picked.minute.toString().padLeft(2, '0');
+                        horaireDebCtrl.text = '$hour:$minute';
+                      }
+                    },
+                  ),
                   SizedBox(height: 12),
-                  TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'السعة', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+                  TextField(
+                    controller: horaireFinCtrl,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Heure de fin',
+                      suffixIcon: Icon(Icons.access_time),
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () async {
+                      TimeOfDay? picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (picked != null) {
+                        final hour = picked.hour.toString().padLeft(2, '0');
+                        final minute = picked.minute.toString().padLeft(2, '0'); 
+                        horaireFinCtrl.text = '$hour:$minute';
+                      }
+                    },
+                  ),
+                  SizedBox(height: 12),
+                  TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'Capacité', border: OutlineInputBorder()), keyboardType: TextInputType.number),
                   SizedBox(height: 20),
-
-                  // قسم الاشتراكات المتعددة
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('الاشتراكات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text('Abonnements', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       IconButton(icon: Icon(Icons.add_circle, color: Colors.green), onPressed: addAbonnementField),
                     ],
                   ),
@@ -255,11 +248,11 @@ TextField(
                         padding: EdgeInsets.all(12),
                         child: Column(
                           children: [
-                            TextField(controller: controllers['nom'], decoration: InputDecoration(labelText: 'اسم الاشتراك', border: OutlineInputBorder())),
+                            TextField(controller: controllers['nom'], decoration: InputDecoration(labelText: 'Nom de l\'abonnement', border: OutlineInputBorder())),
                             SizedBox(height: 8),
-                            TextField(controller: controllers['prix'], decoration: InputDecoration(labelText: 'السعر', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+                            TextField(controller: controllers['prix'], decoration: InputDecoration(labelText: 'Prix', border: OutlineInputBorder()), keyboardType: TextInputType.number),
                             SizedBox(height: 8),
-                            TextField(controller: controllers['duree'], decoration: InputDecoration(labelText: 'المدة (بالأشهر)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+                            TextField(controller: controllers['duree'], decoration: InputDecoration(labelText: 'Durée (mois)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
                             if (abonnements.length > 1)
                               Align(
                                 alignment: Alignment.centerRight,
@@ -277,68 +270,61 @@ TextField(
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء')),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Annuler')),
               ElevatedButton(
-  onPressed: selectedCoach == null || selectedSalle == null || abonnements.isEmpty
-      ? null
-      : () async {
-          // التحقق من الحقول الأساسية
-          if (nomCtrl.text.isEmpty || horaireDebCtrl.text.isEmpty || horaireFinCtrl.text.isEmpty || capaciteCtrl.text.isEmpty) {
-            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('املأ جميع الحقول الأساسية')));
-            return;
-          }
+                onPressed: selectedCoach == null || selectedSalle == null || abonnements.isEmpty
+                    ? null
+                    : () async {
+                        if (nomCtrl.text.isEmpty || horaireDebCtrl.text.isEmpty || horaireFinCtrl.text.isEmpty || capaciteCtrl.text.isEmpty) {
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Remplissez tous les champs principaux')));
+                          return;
+                        }
 
-          // التحقق من حقول الاشتراكات
-          for (var ab in abonnements) {
-            if (ab['nom']!.text.isEmpty || ab['prix']!.text.isEmpty || ab['duree']!.text.isEmpty) {
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('املأ جميع حقول الاشتراكات')));
-              return;
-            }
-          }
+                        for (var ab in abonnements) {
+                          if (ab['nom']!.text.isEmpty || ab['prix']!.text.isEmpty || ab['duree']!.text.isEmpty) {
+                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Remplissez tous les champs des abonnements')));
+                            return;
+                          }
+                        }
 
-          var request = http.MultipartRequest('POST', Uri.parse('${authProvider.baseUrl}/cours'));
-          request.headers['Authorization'] = 'Bearer ${authProvider.token}';
+                        var request = http.MultipartRequest('POST', Uri.parse('${authProvider.baseUrl}/cours'));
+                        request.headers['Authorization'] = 'Bearer ${authProvider.token}';
 
-          // الحقول العادية
-          request.fields['coach_id'] = selectedCoach['id'].toString();
-          request.fields['salle_id'] = selectedSalle['id'].toString();
-          request.fields['nom'] = nomCtrl.text;
-          request.fields['horaire_deb'] = horaireDebCtrl.text;
-          request.fields['horaire_fin'] = horaireFinCtrl.text;
-          request.fields['capacite'] = capaciteCtrl.text;
+                        request.fields['coach_id'] = selectedCoach['id'].toString();
+                        request.fields['salle_id'] = selectedSalle['id'].toString();
+                        request.fields['nom'] = nomCtrl.text;
+                        request.fields['horaire_deb'] = horaireDebCtrl.text;
+                        request.fields['horaire_fin'] = horaireFinCtrl.text;
+                        request.fields['capacite'] = capaciteCtrl.text;
 
-          // إرسال abonnements كـ array بطريقة Laravel الصحيحة
-          for (int i = 0; i < abonnements.length; i++) {
-            request.fields['abonnements[$i][nom]'] = abonnements[i]['nom']!.text;
-            request.fields['abonnements[$i][prix]'] = abonnements[i]['prix']!.text;
-            request.fields['abonnements[$i][duree]'] = abonnements[i]['duree']!.text;
-          }
+                        for (int i = 0; i < abonnements.length; i++) {
+                          request.fields['abonnements[$i][nom]'] = abonnements[i]['nom']!.text;
+                          request.fields['abonnements[$i][prix]'] = abonnements[i]['prix']!.text;
+                          request.fields['abonnements[$i][duree]'] = abonnements[i]['duree']!.text;
+                        }
 
-          // إضافة الصورة
-          request.files.add(await http.MultipartFile.fromPath('img', image.path));
+                        request.files.add(await http.MultipartFile.fromPath('img', image.path));
 
-          final response = await request.send();
+                        final response = await request.send();
 
-          if (!mounted) return;
+                        if (!mounted) return;
 
-          if (response.statusCode == 201) {
-            Navigator.pop(ctx);
-            fetchAllData();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('تم إضافة الدورة مع الاشتراكات بنجاح'), backgroundColor: Colors.green),
-            );
-          } else {
-            // لمعرفة الخطأ بالضبط (مفيد للـ debug)
-            final respBody = await response.stream.bytesToString();
-            print('Error Response: $respBody'); // شاهد هذا في console
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('فشل الإضافة: تأكد من البيانات'), backgroundColor: Colors.red),
-            );
-          }
-        },
-  child: Text('إضافة'),
-),
+                        if (response.statusCode == 201) {
+                          Navigator.pop(ctx);
+                          fetchAllData();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Cours et abonnements ajoutés avec succès'), backgroundColor: Colors.green),
+                          );
+                        } else {
+                          final respBody = await response.stream.bytesToString();
+                          print('Error Response: $respBody');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Échec de l\'ajout'), backgroundColor: Colors.red),
+                          );
+                        }
+                      },
+                child: Text('Ajouter'),
+              ),
             ],
           );
         },
@@ -346,7 +332,6 @@ TextField(
     );
   }
 
-  // إضافة مدرب (بدون تغيير)
   Future<void> addCoach() async {
     final nameCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
@@ -355,16 +340,16 @@ TextField(
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('إضافة مدرب جديد'),
+        title: Text('Ajouter un nouveau coach'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'الاسم', border: OutlineInputBorder())),
+          TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'Nom', border: OutlineInputBorder())),
           SizedBox(height: 12),
-          TextField(controller: emailCtrl, decoration: InputDecoration(labelText: 'البريد الإلكتروني', border: OutlineInputBorder()), keyboardType: TextInputType.emailAddress),
+          TextField(controller: emailCtrl, decoration: InputDecoration(labelText: 'Email', border: OutlineInputBorder()), keyboardType: TextInputType.emailAddress),
           SizedBox(height: 12),
-          TextField(controller: passwordCtrl, decoration: InputDecoration(labelText: 'كلمة المرور', border: OutlineInputBorder()), obscureText: true),
+          TextField(controller: passwordCtrl, decoration: InputDecoration(labelText: 'Mot de passe', border: OutlineInputBorder()), obscureText: true),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Annuler')),
           ElevatedButton(
             onPressed: () async {
               final response = await authProvider.apiRequest('users', 'POST', body: {
@@ -379,34 +364,32 @@ TextField(
               if (response.statusCode == 201) {
                 Navigator.pop(ctx);
                 fetchAllData();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم إضافة المدرب بنجاح'), backgroundColor: Colors.green));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coach ajouté avec succès'), backgroundColor: Colors.green));
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل إضافة المدرب'), backgroundColor: Colors.red));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Échec de l\'ajout du coach'), backgroundColor: Colors.red));
               }
             },
-            child: Text('إضافة'),
+            child: Text('Ajouter'),
           ),
         ],
       ),
     );
   }
 
-// ==================== دالة حذف عامة ====================
   Future<void> deleteItem(String endpoint) async {
     try {
       await authProvider.apiRequest(endpoint, 'DELETE');
       fetchAllData();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم الحذف بنجاح'), backgroundColor: Colors.green),
+        SnackBar(content: Text('Supprimé avec succès'), backgroundColor: Colors.green),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل الحذف'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Échec de la suppression'), backgroundColor: Colors.red),
       );
     }
   }
-  
-  // ==================== تعديل صالة ====================
+
   void editSalle(Map<dynamic, dynamic> salle) async {
     final picker = ImagePicker();
     XFile? newImage;
@@ -417,31 +400,31 @@ TextField(
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('تعديل الصالة'),
+        title: Text('Modifier la salle'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'اسم الصالة')),
+              TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'Nom de la salle')),
               SizedBox(height: 12),
-              TextField(controller: addressCtrl, decoration: InputDecoration(labelText: 'العنوان')),
+              TextField(controller: addressCtrl, decoration: InputDecoration(labelText: 'Adresse')),
               SizedBox(height: 12),
-              TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'السعة'), keyboardType: TextInputType.number),
+              TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'Capacité'), keyboardType: TextInputType.number),
               SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () async {
                   newImage = await picker.pickImage(source: ImageSource.gallery);
                   if (newImage != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم اختيار صورة جديدة')));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nouvelle image sélectionnée')));
                   }
                 },
-                child: Text('تغيير الصورة'),
+                child: Text('Changer l\'image'),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Annuler')),
           ElevatedButton(
             onPressed: () async {
               var request = http.MultipartRequest('POST', Uri.parse('${authProvider.baseUrl}/salles/${salle['id']}'));
@@ -460,236 +443,224 @@ TextField(
               if (response.statusCode == 200) {
                 Navigator.pop(ctx);
                 fetchAllData();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تعديل الصالة بنجاح'), backgroundColor: Colors.green));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Salle modifiée avec succès'), backgroundColor: Colors.green));
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل التعديل'), backgroundColor: Colors.red));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Échec de la modification'), backgroundColor: Colors.red));
               }
             },
-            child: Text('حفظ'),
+            child: Text('Enregistrer'),
           ),
         ],
       ),
     );
   }
 
-  // ==================== تعديل دورة ====================
-void editCourse(Map<dynamic, dynamic> originalCour) async {
-  final picker = ImagePicker();
-  XFile? newImage;
+  void editCourse(Map<dynamic, dynamic> originalCour) async {
+    final picker = ImagePicker();
+    XFile? newImage;
 
-  final nomCtrl = TextEditingController(text: originalCour['nom']);
-  final horaireDebCtrl = TextEditingController(text: originalCour['horaire_deb']);
-  final horaireFinCtrl = TextEditingController(text: originalCour['horaire_fin']);
-  final capaciteCtrl = TextEditingController(text: originalCour['capacite'].toString());
+    final nomCtrl = TextEditingController(text: originalCour['nom']);
+    final horaireDebCtrl = TextEditingController(text: originalCour['horaire_deb']);
+    final horaireFinCtrl = TextEditingController(text: originalCour['horaire_fin']);
+    final capaciteCtrl = TextEditingController(text: originalCour['capacite'].toString());
 
-  // جلب البيانات اللازمة
-  final sallesRes = await authProvider.apiRequest('salles', 'GET');
-  final coachesRes = await authProvider.apiRequest('users', 'GET');
-  List<dynamic> sallesList = sallesRes.statusCode == 200 ? json.decode(sallesRes.body)['data'] ?? [] : [];
-  List<dynamic> coachesList = coachesRes.statusCode == 200
-      ? (json.decode(coachesRes.body)['data'] as List).where((u) => u['role'] == 'coach').toList()
-      : [];
+    final sallesRes = await authProvider.apiRequest('salles', 'GET');
+    final coachesRes = await authProvider.apiRequest('users', 'GET');
+    List<dynamic> sallesList = sallesRes.statusCode == 200 ? json.decode(sallesRes.body)['data'] ?? [] : [];
+    List<dynamic> coachesList = coachesRes.statusCode == 200
+        ? (json.decode(coachesRes.body)['data'] as List).where((u) => u['role'] == 'coach').toList()
+        : [];
 
-  dynamic? selectedSalle = sallesList.firstWhereOrNull((s) => s['id'] == originalCour['salle_id']);
-  dynamic? selectedCoach = coachesList.firstWhereOrNull((c) => c['id'] == originalCour['coach_id']);
+    dynamic? selectedSalle = sallesList.firstWhereOrNull((s) => s['id'] == originalCour['salle_id']);
+    dynamic? selectedCoach = coachesList.firstWhereOrNull((c) => c['id'] == originalCour['coach_id']);
 
-  // نسخ الاشتراكات الحالية للتعديل
-  List<Map<String, dynamic>> abonnements = (originalCour['abonnement'] as List<dynamic>? ?? [])
-      .map((ab) => {
-            'id': ab['id'],
-            'nom': TextEditingController(text: ab['nom']),
-            'prix': TextEditingController(text: ab['prix'].toString()),
-            'duree': TextEditingController(text: ab['duree'].toString()),
-          })
-      .toList();
+    List<Map<String, dynamic>> abonnements = (originalCour['abonnement'] as List<dynamic>? ?? [])
+        .map((ab) => {
+              'id': ab['id'],
+              'nom': TextEditingController(text: ab['nom']),
+              'prix': TextEditingController(text: ab['prix'].toString()),
+              'duree': TextEditingController(text: ab['duree'].toString()),
+            })
+        .toList();
 
-  // إضافة حقل اشتراك جديد فارغ للإمكانية
-  void addNewAbonnement() {
-    setState(() {
-      abonnements.add({
-        'nom': TextEditingController(),
-        'prix': TextEditingController(),
-        'duree': TextEditingController(),
+    void addNewAbonnement() {
+      setState(() {
+        abonnements.add({
+          'nom': TextEditingController(),
+          'prix': TextEditingController(),
+          'duree': TextEditingController(),
+        });
       });
-    });
-  }
+    }
 
-  void removeAbonnement(int index) {
-    setState(() {
-      abonnements.removeAt(index);
-    });
-  }
+    void removeAbonnement(int index) {
+      if (index < 0 || index >= abonnements.length) {
+        print('Index invalide ignoré: $index (longueur = ${abonnements.length})');
+        return;
+      }
 
-  showDialog(
-    context: context,
-    builder: (ctx) => StatefulBuilder(
-      builder: (context, setStateDialog) {
-        return AlertDialog(
-          title: Text('تعديل الدورة: ${originalCour['nom']}'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // اختيار المدرب
-                  DropdownButtonFormField<dynamic>(
-                    value: selectedCoach,
-                    decoration: InputDecoration(labelText: 'المدرب', border: OutlineInputBorder()),
-                    items: coachesList.map((coach) => DropdownMenuItem(value: coach, child: Text(coach['name']))).toList(),
-                    onChanged: (value) => setStateDialog(() => selectedCoach = value),
-                  ),
-                  SizedBox(height: 12),
+      setState(() {
+        abonnements.removeAt(index);
+      });
+    }
 
-                  // اختيار الصالة
-                  DropdownButtonFormField<dynamic>(
-                    value: selectedSalle,
-                    decoration: InputDecoration(labelText: 'الصالة', border: OutlineInputBorder()),
-                    items: sallesList.map((salle) => DropdownMenuItem(value: salle, child: Text(salle['nom']))).toList(),
-                    onChanged: (value) => setStateDialog(() => selectedSalle = value),
-                  ),
-                  SizedBox(height: 12),
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            title: Text('Modifier le cours : ${originalCour['nom']}'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<dynamic>(
+                      value: selectedCoach,
+                      decoration: InputDecoration(labelText: 'Coach', border: OutlineInputBorder()),
+                      items: coachesList.map((coach) => DropdownMenuItem(value: coach, child: Text(coach['name']))).toList(),
+                      onChanged: (value) => setStateDialog(() => selectedCoach = value),
+                    ),
+                    SizedBox(height: 12),
+                    DropdownButtonFormField<dynamic>(
+                      value: selectedSalle,
+                      decoration: InputDecoration(labelText: 'Salle', border: OutlineInputBorder()),
+                      items: sallesList.map((salle) => DropdownMenuItem(value: salle, child: Text(salle['nom']))).toList(),
+                      onChanged: (value) => setStateDialog(() => selectedSalle = value),
+                    ),
+                    SizedBox(height: 12),
+                    TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'Nom du cours', border: OutlineInputBorder())),
+                    SizedBox(height: 12),
+                    TextField(controller: horaireDebCtrl, decoration: InputDecoration(labelText: 'Heure de début (HH:MM)', border: OutlineInputBorder())),
+                    SizedBox(height: 12),
+                    TextField(controller: horaireFinCtrl, decoration: InputDecoration(labelText: 'Heure de fin (HH:MM)', border: OutlineInputBorder())),
+                    SizedBox(height: 12),
+                    TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'Capacité', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+                    SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.image),
+                      label: Text('Changer l\'image'),
+                      onPressed: () async {
+                        newImage = await picker.pickImage(source: ImageSource.gallery);
+                        if (newImage != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nouvelle image sélectionnée')));
+                        }
+                      },
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Abonnements', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        IconButton(icon: Icon(Icons.add_circle, color: Colors.green), onPressed: addNewAbonnement),
+                      ],
+                    ),
+                    ...abonnements.asMap().entries.map((entry) {
+                      int idx = entry.key;
+                      var ab = entry.value;
+                      bool isNew = ab['id'] == null;
 
-                  TextField(controller: nomCtrl, decoration: InputDecoration(labelText: 'اسم الدورة', border: OutlineInputBorder())),
-                  SizedBox(height: 12),
-                  TextField(controller: horaireDebCtrl, decoration: InputDecoration(labelText: 'وقت البداية (HH:MM)', border: OutlineInputBorder())),
-                  SizedBox(height: 12),
-                  TextField(controller: horaireFinCtrl, decoration: InputDecoration(labelText: 'وقت النهاية (HH:MM)', border: OutlineInputBorder())),
-                  SizedBox(height: 12),
-                  TextField(controller: capaciteCtrl, decoration: InputDecoration(labelText: 'السعة', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-                  SizedBox(height: 20),
-
-                  // تغيير الصورة
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.image),
-                    label: Text('تغيير الصورة'),
-                    onPressed: () async {
-                      newImage = await picker.pickImage(source: ImageSource.gallery);
-                      if (newImage != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم اختيار صورة جديدة')));
-                      }
-                    },
-                  ),
-                  SizedBox(height: 20),
-
-                  // الاشتراكات
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('الاشتراكات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      IconButton(icon: Icon(Icons.add_circle, color: Colors.green), onPressed: addNewAbonnement),
-                    ],
-                  ),
-
-                  ...abonnements.asMap().entries.map((entry) {
-                    int idx = entry.key;
-                    var ab = entry.value;
-                    bool isNew = ab['id'] == null; // جديد إذا لم يكن له id
-
-                    return Card(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Column(
-                          children: [
-                            TextField(controller: ab['nom'], decoration: InputDecoration(labelText: 'اسم الاشتراك', border: OutlineInputBorder())),
-                            SizedBox(height: 8),
-                            TextField(controller: ab['prix'], decoration: InputDecoration(labelText: 'السعر', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-                            SizedBox(height: 8),
-                            TextField(controller: ab['duree'], decoration: InputDecoration(labelText: 'المدة (بالأشهر)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-                            if (!isNew || abonnements.length > 1)
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: IconButton(
-                                  icon: Icon(Icons.remove_circle, color: Colors.red),
-                                  onPressed: () => removeAbonnement(idx),
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Column(
+                            children: [
+                              TextField(controller: ab['nom'], decoration: InputDecoration(labelText: 'Nom de l\'abonnement', border: OutlineInputBorder())),
+                              SizedBox(height: 8),
+                              TextField(controller: ab['prix'], decoration: InputDecoration(labelText: 'Prix', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+                              SizedBox(height: 8),
+                              TextField(controller: ab['duree'], decoration: InputDecoration(labelText: 'Durée (mois)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+                              if (!isNew || abonnements.length > 1)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: IconButton(
+                                    icon: Icon(Icons.remove_circle, color: Colors.red),
+                                    onPressed: () => removeAbonnement(idx),
+                                  ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ],
+                      );
+                    }).toList(),
+                  ],
+                ),
               ),
             ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء')),
-            ElevatedButton(
-              onPressed: selectedCoach == null || selectedSalle == null
-                  ? null
-                  : () async {
-                      // التحقق من الحقول الأساسية
-                      if (nomCtrl.text.isEmpty || horaireDebCtrl.text.isEmpty || horaireFinCtrl.text.isEmpty || capaciteCtrl.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('املأ الحقول الأساسية')));
-                        return;
-                      }
-
-                      var request = http.MultipartRequest('POST', Uri.parse('${authProvider.baseUrl}/cours/${originalCour['id']}'));
-                      request.headers.addAll({
-  'Authorization': 'Bearer ${authProvider.token}',
-  'Accept': 'application/json', // ← هذا السطر مهم جدًا!
-});
-
-
-                      request.fields['coach_id'] = selectedCoach['id'].toString();
-                      request.fields['salle_id'] = selectedSalle['id'].toString();
-                      request.fields['nom'] = nomCtrl.text;
-                      request.fields['horaire_deb'] = horaireDebCtrl.text;
-                      request.fields['horaire_fin'] = horaireFinCtrl.text;
-                      request.fields['capacite'] = capaciteCtrl.text;
-
-                      // إرسال الصورة إذا تم اختيار واحدة جديدة
-                      if (newImage != null) {
-                        request.files.add(await http.MultipartFile.fromPath('img', newImage!.path));
-                      }
-
-                      // إرسال الاشتراكات
-                      for (int i = 0; i < abonnements.length; i++) {
-                        var ab = abonnements[i];
-                        if (ab['nom'].text.isEmpty || ab['prix'].text.isEmpty || ab['duree'].text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('املأ جميع حقول الاشتراكات')));
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Annuler')),
+              ElevatedButton(
+                onPressed: selectedCoach == null || selectedSalle == null
+                    ? null
+                    : () async {
+                        if (nomCtrl.text.isEmpty || horaireDebCtrl.text.isEmpty || horaireFinCtrl.text.isEmpty || capaciteCtrl.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Remplissez les champs principaux')));
                           return;
                         }
 
-                        final prefix = 'abonnements[$i]';
-                        if (ab['id'] != null) {
-                          request.fields['$prefix[id]'] = ab['id'].toString();
+                        var request = http.MultipartRequest('post', Uri.parse('${authProvider.baseUrl}/cours/${originalCour['id']}'));
+                        request.headers.addAll({
+                          'Authorization': 'Bearer ${authProvider.token}',
+                          'Accept': 'application/json',
+                        });
+
+                        request.fields['coach_id'] = selectedCoach['id'].toString();
+                        request.fields['salle_id'] = selectedSalle['id'].toString();
+                        request.fields['nom'] = nomCtrl.text;
+                        request.fields['horaire_deb'] = horaireDebCtrl.text;
+                        request.fields['horaire_fin'] = horaireFinCtrl.text;
+                        request.fields['capacite'] = capaciteCtrl.text;
+
+                        if (newImage != null) {
+                          request.files.add(await http.MultipartFile.fromPath('img', newImage!.path));
                         }
-                        request.fields['$prefix[nom]'] = ab['nom'].text;
-                        request.fields['$prefix[prix]'] = ab['prix'].text;
-                        request.fields['$prefix[duree]'] = ab['duree'].text;
-                      }
 
-                      final response = await request.send();
-                      final respBody = await response.stream.bytesToString();
-print('Status Code: ${response.statusCode}');
-print('Response Body: $respBody');
-                      if (!mounted) return;
+                        for (int i = 0; i < abonnements.length; i++) {
+                          var ab = abonnements[i];
+                          if (ab['nom'].text.isEmpty || ab['prix'].text.isEmpty || ab['duree'].text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Remplissez tous les champs des abonnements')));
+                            return;
+                          }
 
-                      if (response.statusCode == 200) {
-                        Navigator.pop(ctx);
-                        fetchAllData();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('تم تعديل الدورة بنجاح'), backgroundColor: Colors.green),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${response.statusCode}'), backgroundColor: Colors.red),
-                        );
-                      }
-                    },
-              child: Text('حفظ التعديلات'),
-            ),
-          ],
-        );
-      },
-    ),
-  );
-}
+                          final prefix = 'abonnements[$i]';
+                          if (ab['id'] != null) {
+                            request.fields['$prefix[id]'] = ab['id'].toString();
+                          }
+                          request.fields['$prefix[nom]'] = ab['nom'].text;
+                          request.fields['$prefix[prix]'] = ab['prix'].text;
+                          request.fields['$prefix[duree]'] = ab['duree'].text;
+                        }
 
-  // ==================== تعديل مستخدم (مدرب) ====================
+                        final response = await request.send();
+                        final respBody = await response.stream.bytesToString();
+                        print('Status Code: ${response.statusCode}');
+                        print('Response Body: $respBody');
+
+                        if (!mounted) return;
+
+                        if (response.statusCode == 200) {
+                          Navigator.pop(ctx);
+                          fetchAllData();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Cours modifié avec succès'), backgroundColor: Colors.green),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Erreur : ${respBody}'), backgroundColor: Colors.red),
+                          );
+                        }
+                      },
+                child: Text('Enregistrer les modifications'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   void editUser(Map<dynamic, dynamic> user) async {
     final nameCtrl = TextEditingController(text: user['name']);
     final emailCtrl = TextEditingController(text: user['email']);
@@ -698,19 +669,19 @@ print('Response Body: $respBody');
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('تعديل المدرب'),
+        title: Text('Modifier le coach'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'الاسم')),
+            TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'Nom')),
             SizedBox(height: 12),
-            TextField(controller: emailCtrl, decoration: InputDecoration(labelText: 'البريد الإلكتروني'), keyboardType: TextInputType.emailAddress),
+            TextField(controller: emailCtrl, decoration: InputDecoration(labelText: 'Email'), keyboardType: TextInputType.emailAddress),
             SizedBox(height: 12),
-            TextField(controller: passwordCtrl, decoration: InputDecoration(labelText: 'كلمة المرور (اتركه فارغًا إذا لا تريد تغييرها)'), obscureText: true),
+            TextField(controller: passwordCtrl, decoration: InputDecoration(labelText: 'Mot de passe (laissez vide pour ne pas modifier)'), obscureText: true),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Annuler')),
           ElevatedButton(
             onPressed: () async {
               Map<String, dynamic> body = {
@@ -726,35 +697,45 @@ print('Response Body: $respBody');
               if (response.statusCode == 200) {
                 Navigator.pop(ctx);
                 fetchAllData();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تعديل المدرب بنجاح'), backgroundColor: Colors.green));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coach modifié avec succès'), backgroundColor: Colors.green));
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل التعديل'), backgroundColor: Colors.red));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Échec de la modification'), backgroundColor: Colors.red));
               }
             },
-            child: Text('حفظ'),
+            child: Text('Enregistrer'),
           ),
         ],
       ),
     );
   }
 
-  // ==================== تعديل حالة الاشتراك ====================
   void editInscriptionStatus(Map<dynamic, dynamic> inscription) async {
     String? newStatus = inscription['etat'];
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('تغيير حالة الاشتراك'),
+        title: Text('Changer le statut de l\'inscription'),
         content: DropdownButton<String>(
           value: newStatus,
           items: ['en attente', 'sans payée', 'valider', 'annuler'].map((status) {
-            return DropdownMenuItem(value: status, child: Text(status == 'valider' ? 'مقبول' : status == 'annuler' ? 'مرفوض' : status == 'sans payée' ? 'بدون دفع' : 'في الانتظار'));
+            return DropdownMenuItem(
+              value: status,
+              child: Text(
+                status == 'valider'
+                    ? 'Accepté'
+                    : status == 'annuler'
+                        ? 'Refusé'
+                        : status == 'sans payée'
+                            ? 'Non payé'
+                            : 'En attente',
+              ),
+            );
           }).toList(),
           onChanged: (val) => newStatus = val,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Annuler')),
           ElevatedButton(
             onPressed: () async {
               final response = await authProvider.apiRequest('inscriptions/${inscription['id']}', 'PUT', body: {'etat': newStatus});
@@ -762,12 +743,12 @@ print('Response Body: $respBody');
               if (response.statusCode == 200) {
                 Navigator.pop(ctx);
                 fetchAllData();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تحديث الحالة'), backgroundColor: Colors.green));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Statut mis à jour'), backgroundColor: Colors.green));
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل التحديث'), backgroundColor: Colors.red));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Échec de la mise à jour'), backgroundColor: Colors.red));
               }
             },
-            child: Text('حفظ'),
+            child: Text('Enregistrer'),
           ),
         ],
       ),
@@ -779,11 +760,23 @@ print('Response Body: $respBody');
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
-        title: Text('لوحة تحكم POWERIX', style: TextStyle(fontWeight: FontWeight.bold, color: accentColor)),
+        title: Text('Tableau de bord POWERIX', style: TextStyle(fontWeight: FontWeight.bold, color: accentColor)),
         backgroundColor: primaryColor.withOpacity(0.9),
         elevation: 4,
         shadowColor: Colors.black45,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.manage_accounts),
+            tooltip: 'Modifier le compte admin',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
+              );
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: accentColor,
@@ -792,10 +785,10 @@ print('Response Body: $respBody');
           indicatorWeight: 4,
           labelStyle: TextStyle(fontWeight: FontWeight.bold),
           tabs: [
-            Tab(text: 'الصالات'),
-            Tab(text: 'الدورات'),
-            Tab(text: 'المستخدمين'),
-            Tab(text: 'الاشتراكات'),
+            Tab(text: 'Salles'),
+            Tab(text: 'Cours'),
+            Tab(text: 'Utilisateurs'),
+            Tab(text: 'Inscriptions'),
           ],
         ),
       ),
@@ -817,9 +810,8 @@ print('Response Body: $respBody');
           : TabBarView(
               controller: _tabController,
               children: [
-                // الصالات - مع زر تعديل
                 salles.isEmpty
-                    ? Center(child: Text('لا توجد صالات', style: TextStyle(color: Colors.white70, fontSize: 18)))
+                    ? Center(child: Text('Aucune salle trouvée', style: TextStyle(color: Colors.white70, fontSize: 18)))
                     : ListView.builder(
                         padding: EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: salles.length,
@@ -848,7 +840,7 @@ print('Response Body: $respBody');
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(salle['address'], style: TextStyle(color: Colors.white70)),
-                                  Text('سعة: ${salle['capacite']} شخص', style: TextStyle(color: Colors.white70)),
+                                  Text('Capacité : ${salle['capacite']} personnes', style: TextStyle(color: Colors.white70)),
                                 ],
                               ),
                               trailing: Row(
@@ -869,9 +861,8 @@ print('Response Body: $respBody');
                         },
                       ),
 
-                // الدورات - مع زر تعديل (مؤقتًا معلق)
                 courses.isEmpty
-                    ? Center(child: Text('لا توجد دورات', style: TextStyle(color: Colors.white70, fontSize: 18)))
+                    ? Center(child: Text('Aucun cours trouvé', style: TextStyle(color: Colors.white70, fontSize: 18)))
                     : ListView.builder(
                         padding: EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: courses.length,
@@ -902,11 +893,11 @@ print('Response Body: $respBody');
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('في: ${salle['nom'] ?? 'غير محدد'}', style: TextStyle(color: Colors.white70)),
+                                  Text('À : ${salle['nom'] ?? 'Non défini'}', style: TextStyle(color: Colors.white70)),
                                   Text('${cour['horaire_deb']} - ${cour['horaire_fin']}', style: TextStyle(color: Colors.white70)),
-                                  Text('سعة: ${cour['capacite']} شخص', style: TextStyle(color: Colors.white70)),
+                                  Text('Capacité : ${cour['capacite']} personnes', style: TextStyle(color: Colors.white70)),
                                   if (firstAbonnement != null)
-                                    Text('${firstAbonnement['nom']} • ${firstAbonnement['prix']} د.م', style: TextStyle(color: Colors.greenAccent)),
+                                    Text('${firstAbonnement['nom']} • ${firstAbonnement['prix']} DA', style: TextStyle(color: Colors.greenAccent)),
                                 ],
                               ),
                               trailing: Row(
@@ -914,7 +905,7 @@ print('Response Body: $respBody');
                                 children: [
                                   IconButton(
                                     icon: Icon(Icons.edit, color: Colors.blueAccent),
-                                    onPressed: () => editCourse(cour), // يمكن تطويره لاحقًا
+                                    onPressed: () => editCourse(cour),
                                   ),
                                   IconButton(
                                     icon: Icon(Icons.delete_forever, color: Colors.redAccent),
@@ -927,15 +918,18 @@ print('Response Body: $respBody');
                         },
                       ),
 
-                // المستخدمين - مع زر تعديل
                 users.isEmpty
-                    ? Center(child: Text('لا يوجد مستخدمين', style: TextStyle(color: Colors.white70, fontSize: 18)))
+                    ? Center(child: Text('Aucun utilisateur trouvé', style: TextStyle(color: Colors.white70, fontSize: 18)))
                     : ListView.builder(
                         padding: EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: users.length,
                         itemBuilder: (ctx, i) {
                           final user = users[i];
-                          final roleText = user['role'] == 'coach' ? 'مدرب' : user['role'] == 'admin' ? 'أدمن' : 'عميل';
+                          final roleText = user['role'] == 'coach'
+                              ? 'Coach'
+                              : user['role'] == 'admin'
+                                  ? 'Admin'
+                                  : 'Client';
 
                           return Container(
                             margin: EdgeInsets.symmetric(vertical: 8),
@@ -969,23 +963,22 @@ print('Response Body: $respBody');
                         },
                       ),
 
-                // الاشتراكات - مع زر تعديل الحالة
                 inscriptions.isEmpty
-                    ? Center(child: Text('لا توجد اشتراكات', style: TextStyle(color: Colors.white70, fontSize: 18)))
+                    ? Center(child: Text('Aucune inscription trouvée', style: TextStyle(color: Colors.white70, fontSize: 18)))
                     : ListView.builder(
                         padding: EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: inscriptions.length,
                         itemBuilder: (ctx, i) {
                           final ins = inscriptions[i];
-                          final clientName = ins['client']?['name'] ?? 'عميل محذوف';
-                          final courName = ins['cour']?['nom'] ?? 'دورة محذوفة';
-                          final abonnementName = ins['abonnement']?['nom'] ?? 'اشتراك';
+                          final clientName = ins['client']?['name'] ?? 'Client supprimé';
+                          final courName = ins['cour']?['nom'] ?? 'Cours supprimé';
+                          final abonnementName = ins['abonnement']?['nom'] ?? 'Abonnement';
 
                           final status = switch (ins['etat'] ?? 'en attente') {
-                            'valider' => 'مقبول',
-                            'annuler' => 'مرفوض',
-                            'sans payée' => 'بدون دفع',
-                            _ => 'في الانتظار',
+                            'valider' => 'Accepté',
+                            'annuler' => 'Refusé',
+                            'sans payée' => 'Non payé',
+                            _ => 'En attente',
                           };
 
                           final statusColor = switch (ins['etat'] ?? 'en attente') {
@@ -1008,7 +1001,7 @@ print('Response Body: $respBody');
                                 child: Icon(Icons.assignment_turned_in, color: statusColor),
                               ),
                               title: Text('$clientName → $courName → $abonnementName', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold)),
-                              subtitle: Text('التاريخ: ${ins['date_inscription'] ?? 'غير معروف'}', style: TextStyle(color: Colors.white70)),
+                              subtitle: Text('Date : ${ins['date_inscription'] ?? 'Inconnue'}', style: TextStyle(color: Colors.white70)),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [

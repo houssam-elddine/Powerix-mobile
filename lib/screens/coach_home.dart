@@ -1,14 +1,15 @@
-// lib/screens/coach_home.dart
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/auth_provider.dart';
+import 'profile_edit_screen.dart';
 
 class CoachHome extends StatefulWidget {
+  const CoachHome({super.key});
+
   @override
-  _CoachHomeState createState() => _CoachHomeState();
+  State<CoachHome> createState() => _CoachHomeState();
 }
 
 class _CoachHomeState extends State<CoachHome> {
@@ -27,233 +28,406 @@ class _CoachHomeState extends State<CoachHome> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      // جلب دورات المدرب
-      final coursResponse = await auth.apiRequest(
-        'coach/cours/${auth.userId}',
-        'GET',
-      );
+      final coursRes = await auth.apiRequest('coach/cours/${auth.userId}', 'GET');
+      final insRes = await auth.apiRequest('coach/inscriptions', 'GET');
 
-      if (coursResponse.statusCode == 200) {
-        final data = json.decode(coursResponse.body);
-        myCourses = data['data'];
+      if (coursRes.statusCode == 200) {
+        myCourses = json.decode(coursRes.body)['data'] ?? [];
       }
-
-      // جلب طلبات الاشتراك في دورات المدرب
-      final insResponse = await auth.apiRequest(
-        'coach/inscriptions',
-        'GET',
-      );
-
-      if (insResponse.statusCode == 200) {
-        final data = json.decode(insResponse.body);
-        inscriptions = data['data'];
+      if (insRes.statusCode == 200) {
+        inscriptions = json.decode(insRes.body)['data'] ?? [];
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ في تحميل البيانات: $e')),
-      );
-    } finally {
-      setState(() => isLoading = false);
-    }
-  }
-
-  // دالة لتحديث حالة الاشتراك (قبول / رفض)
-  Future<void> updateInscriptionStatus(int inscriptionId, String newStatus) async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-
-    try {
-      final response = await auth.apiRequest(
-        'inscriptions/$inscriptionId',
-        'PUT',
-        body: {'etat': newStatus},
-      );
-
-      if (response.statusCode == 200) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم تحديث الحالة بنجاح')),
+          SnackBar(content: Text('Erreur lors du chargement des données : $e')),
         );
-        fetchCoachData(); // تحديث القائمة
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل تحديث الحالة')),
-      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: fetchCoachData,
-              child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'دوراتي',
-                      style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
-                          ),
+      backgroundColor: isDark ? const Color(0xFF0F1620) : Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text('Tableau de bord Coach'),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: isDark ? const Color(0xFF0F1620) : Colors.white,
+        foregroundColor: isDark ? Colors.white : const Color(0xFF0D47A1),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
+            ),
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: fetchCoachData,
+        color: const Color(0xFF26A69A),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                      child: Text(
+                        'Mes cours',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF0D47A1),
+                          letterSpacing: 0.2,
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 12),
-                    myCourses.isEmpty
-                        ? Center(
-                            child: Text(
-                              'لا توجد دورات حالياً',
-                              style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: myCourses.isEmpty
+                        ? SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 60),
+                              child: Center(
+                                child: Text(
+                                  'Aucun cours enregistré pour le moment',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.grey[400] : Colors.grey[700],
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
                             ),
                           )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: myCourses.length,
-                            itemBuilder: (ctx, i) {
-                              final course = myCourses[i];
-                              final abonnement = course['abonnement'].isNotEmpty
-                                  ? course['abonnement'][0]
-                                  : null;
-
-                              return Card(
-                                elevation: 4,
-                                margin: EdgeInsets.symmetric(vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: ListTile(
-                                  contentPadding: EdgeInsets.all(16),
-                                  leading: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: CachedNetworkImage(
-                                      imageUrl:
-                                          '${Provider.of<AuthProvider>(context, listen: false).baseUrl}/storage/${course['img'] ?? ''}',
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) => Container(color: Colors.grey[300]),
-                                      errorWidget: (context, url, error) => Icon(Icons.fitness_center, size: 40),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    course['nom'],
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('الصالة: ${course['salle']['nom']}'),
-                                      Text('الوقت: ${course['horaire_deb']} - ${course['horaire_fin']}'),
-                                      if (abonnement != null)
-                                        Text(
-                                          'الاشتراك: ${abonnement['nom']} - ${abonnement['prix']} د.م / ${abonnement['duree']} أشهر',
-                                          style: TextStyle(color: Colors.green[700]),
-                                        ),
-                                      Text('السعة: ${course['capacite']} شخص'),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, i) => _CourseCard(course: myCourses[i]),
+                              childCount: myCourses.length,
+                            ),
                           ),
+                  ),
 
-                    SizedBox(height: 32),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-                    Text(
-                      'طلبات الاشتراك في دوراتي',
-                      style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
-                          ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                      child: Text(
+                        'Demandes d\'inscription',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF0D47A1),
+                          letterSpacing: 0.2,
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 12),
-                    inscriptions.isEmpty
-                        ? Center(
-                            child: Text(
-                              'لا توجد طلبات اشتراك حالياً',
-                              style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: inscriptions.isEmpty
+                        ? SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 60),
+                              child: Center(
+                                child: Text(
+                                  'Aucune demande d\'inscription pour le moment',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.grey[400] : Colors.grey[700],
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
                             ),
                           )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: inscriptions.length,
-                            itemBuilder: (ctx, i) {
-                              final ins = inscriptions[i];
-                              final client = ins['client'];
-                              final course = ins['cour'];
-                              final abonnement = ins['abonnement'];
-
-                              String abonnementText = 'غير محدد';
-                              if (abonnement != null) {
-                                final String nom = abonnement['nom'] ?? 'غير محدد';
-                                final String prix = abonnement['prix']?.toString() ?? '0';
-                                abonnementText = '$nom ($prix د.م)';
-                              }
-                              return Card(
-                                elevation: 3,
-                                margin: EdgeInsets.symmetric(vertical: 6),
-                                color: ins['etat'] == 'valider'
-                                    ? Colors.green[50]
-                                    : ins['etat'] == 'annuler'
-                                        ? Colors.red[50]
-                                        : Colors.orange[50],
-                                child: ExpansionTile(
-                                  title: Text(
-                                    '${client['name']} - ${course['nom']}',
-                                    style: TextStyle(fontWeight: FontWeight.w600),
-                                  ),
-                                  subtitle: Text(
-                                    'الحالة: ${ins['etat'] == 'en attente' ? 'في الانتظار' : ins['etat'] == 'valider' ? 'مقبول' : ins['etat'] == 'annuler' ? 'مرفوض' : 'بدون دفع'}',
-                                    style: TextStyle(
-                                      color: ins['etat'] == 'valider'
-                                          ? Colors.green
-                                          : ins['etat'] == 'annuler'
-                                              ? Colors.red
-                                              : Colors.orange,
-                                    ),
-                                  ),
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('التاريخ: ${ins['date_inscription']}'),
-                                          Text('الاشتراك: $abonnementText'),
-                                          SizedBox(height: 12),
-                                          if (ins['etat'] == 'en attente')
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                              children: [
-                                                ElevatedButton(
-                                                  onPressed: () => updateInscriptionStatus(ins['id'], 'valider'),
-                                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                                                  child: Text('قبول', style: TextStyle(color: Colors.white)),
-                                                ),
-                                                ElevatedButton(
-                                                  onPressed: () => updateInscriptionStatus(ins['id'], 'annuler'),
-                                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                                  child: Text('رفض', style: TextStyle(color: Colors.white)),
-                                                ),
-                                              ],
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, i) => _InscriptionCard(
+                                inscription: inscriptions[i],
+                              ),
+                              childCount: inscriptions.length,
+                            ),
                           ),
-                  ],
+                  ),
+
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+class _CourseCard extends StatelessWidget {
+  final Map<String, dynamic> course;
+
+  const _CourseCard({required this.course});
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final abonnements = (course['abonnement'] as List?) ?? [];
+    final salle = course['salle'] ?? {};
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shadowColor: isDark ? Colors.black54 : Colors.black12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: isDark ? const Color(0xFF1A2332) : Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    imageUrl: '${auth.baseUrl}/storage/${course['img'] ?? ''}',
+                    width: 88,
+                    height: 88,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(color: Colors.grey[300]),
+                    errorWidget: (_, __, ___) => const Icon(
+                      Icons.fitness_center_rounded,
+                      size: 48,
+                      color: Color(0xFF26A69A),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        course['nom'] ?? 'Cours sans nom',
+                        style: TextStyle(
+                          fontSize: 17.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF111827),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Salle • ${salle['nom'] ?? 'Non spécifiée'}',
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${course['horaire_deb'] ?? '--:--'} – ${course['horaire_fin'] ?? '--:--'}',
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Capacité • ${course['capacite'] ?? '?'} personnes',
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (abonnements.isNotEmpty) ...[
+              const Divider(height: 28, thickness: 0.8),
+              Text(
+                'Forfaits disponibles',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.5,
+                  color: isDark ? Colors.grey[300] : const Color(0xFF374151),
                 ),
               ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: abonnements.map<Widget>((ab) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF26A69A).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFF26A69A).withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      '${ab['nom'] ?? '?'} • ${ab['prix'] ?? '—'} DA (${ab['duree'] ?? '?'} mois)',
+                      style: const TextStyle(
+                        color: Color(0xFF00695C),
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InscriptionCard extends StatelessWidget {
+  final Map<String, dynamic> inscription;
+
+  const _InscriptionCard({required this.inscription});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final client = inscription['client'] ?? {};
+    final cour = inscription['cour'] ?? {};
+    final abonnement = (cour['abonnement'] as List<dynamic>?)?.firstOrNull ?? {};
+
+    final etat = inscription['etat'] ?? 'en attente';
+
+    Color statusColor;
+    String statusText;
+
+    switch (etat) {
+      case 'valider':
+        statusColor = const Color(0xFF10B981);
+        statusText = 'Accepté';
+        break;
+      case 'annuler':
+        statusColor = const Color(0xFFEF4444);
+        statusText = 'Refusé';
+        break;
+      case 'sans payée':
+        statusColor = const Color(0xFFF59E0B);
+        statusText = 'Non payé';
+        break;
+      default:
+        statusColor = const Color(0xFFF97316);
+        statusText = 'En attente';
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shadowColor: isDark ? Colors.black54 : Colors.black12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: isDark ? const Color(0xFF1A2332) : Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: statusColor.withOpacity(0.15),
+                  child: Icon(Icons.person_rounded, color: statusColor, size: 26),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        client['name'] ?? 'Utilisateur supprimé',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: isDark ? Colors.white : const Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        cour['nom'] ?? 'Cours supprimé',
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[700],
+                          fontSize: 14.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: statusColor.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    statusText,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
             ),
+            const Divider(height: 28, thickness: 0.8),
+            Row(
+              children: [
+                Icon(Icons.card_membership_rounded,
+                    size: 18, color: const Color(0xFF26A69A)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${abonnement['nom'] ?? '—'} • ${abonnement['prix'] ?? '—'} DA • ${abonnement['duree'] ?? '—'} mois',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.grey[300] : const Color(0xFF374151),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.calendar_today_rounded,
+                    size: 18, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Text(
+                  'Date de la demande : ${inscription['date_inscription'] ?? 'Inconnue'}',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: isDark ? Colors.grey[400] : Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

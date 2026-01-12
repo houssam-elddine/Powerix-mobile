@@ -1,10 +1,8 @@
-// lib/screens/account_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'profile_edit_screen.dart'; // ✅ تأكد إن الملف موجود
-import 'login_screen.dart'; // ← المسار الصحيح لشاشة تسجيل الدخول
+import 'profile_edit_screen.dart';
+import 'login_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -21,7 +19,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('حسابي'),
+        title: const Text('Mon Compte'),
         backgroundColor: const Color(0xFF001F3F),
         foregroundColor: Colors.white,
         elevation: 6,
@@ -39,7 +37,6 @@ class _AccountScreenState extends State<AccountScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // صورة الملف الشخصي مع تأثير glow
               Center(
                 child: Stack(
                   children: [
@@ -84,26 +81,24 @@ class _AccountScreenState extends State<AccountScreen> {
               const SizedBox(height: 20),
 
               Text(
-                user['name'] ?? 'غير محدد',
+                user['name'] ?? 'Non défini',
                 style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
               ),
               Text(
-                user['role'] == 'client' ? 'عضو' : user['role'] ?? 'غير محدد',
+                user['role'] == 'client' ? 'Membre' : user['role'] ?? 'Non défini',
                 style: const TextStyle(color: Colors.greenAccent, fontSize: 18, fontWeight: FontWeight.w600),
               ),
 
               const SizedBox(height: 40),
 
-              // كروت المعلومات
-              _buildInfoCard(Icons.email, 'البريد الإلكتروني', user['email'] ?? 'غير محدد'),
+              _buildInfoCard(Icons.email, 'Adresse e-mail', user['email'] ?? 'Non défini'),
               const SizedBox(height: 16),
-              _buildInfoCard(Icons.fitness_center, 'الدور', user['role'] == 'client' ? 'عميل' : 'غير محدد'),
+              _buildInfoCard(Icons.fitness_center, 'Rôle', user['role'] == 'client' ? 'Client' : 'Non défini'),
               const SizedBox(height: 16),
-              _buildInfoCard(Icons.calendar_today, 'تاريخ الانضمام', 'يناير 2026'), // يمكن تجيبه من الـ API لو موجود
+              _buildInfoCard(Icons.calendar_today, 'Date d\'inscription', 'Janvier 2026'),
 
               const SizedBox(height: 40),
 
-              // زر تعديل الملف
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -115,7 +110,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     );
                   },
                   icon: const Icon(Icons.edit, size: 24),
-                  label: const Text('تعديل الملف الشخصي', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  label: const Text('Modifier le profil', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: const Color(0xFF001F3F),
@@ -128,7 +123,6 @@ class _AccountScreenState extends State<AccountScreen> {
 
               const SizedBox(height: 20),
 
-              // زر تسجيل الخروج
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -138,13 +132,13 @@ class _AccountScreenState extends State<AccountScreen> {
                       context: context,
                       builder: (ctx) => AlertDialog(
                         backgroundColor: const Color(0xFF002244),
-                        title: const Text('تسجيل الخروج', style: TextStyle(color: Colors.white)),
-                        content: const Text('هل أنت متأكد من تسجيل الخروج؟', style: TextStyle(color: Colors.white70)),
+                        title: const Text('Déconnexion', style: TextStyle(color: Colors.white)),
+                        content: const Text('Voulez-vous vraiment vous déconnecter ?', style: TextStyle(color: Colors.white70)),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
                           TextButton(
                             onPressed: () => Navigator.pop(ctx, true),
-                            child: const Text('نعم', style: TextStyle(color: Colors.redAccent)),
+                            child: const Text('Oui', style: TextStyle(color: Colors.redAccent)),
                           ),
                         ],
                       ),
@@ -155,13 +149,13 @@ class _AccountScreenState extends State<AccountScreen> {
                       if (mounted) {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) =>  LoginScreen()), // ← الحل الصحيح
+                          MaterialPageRoute(builder: (_) =>  LoginScreen()),
                         );
                       }
                     }
                   },
                   icon: const Icon(Icons.logout, color: Colors.redAccent),
-                  label: const Text('تسجيل الخروج', style: TextStyle(fontSize: 18, color: Colors.redAccent)),
+                  label: const Text('Se déconnecter', style: TextStyle(fontSize: 18, color: Colors.redAccent)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.redAccent, width: 2),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),

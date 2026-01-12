@@ -1,5 +1,3 @@
-// lib/screens/login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -37,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF001F3F), // أزرق داكن من اللوغو
+              Color(0xFF001F3F),
               Color(0xFF003366),
               Color(0xFF004488),
             ],
@@ -50,9 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 SizedBox(height: size.height * 0.08),
 
-                // اللوغو
                 Image.asset(
-                  'assets/images/powerix_logo.png', // تأكد من وضع اللوغو في assets وتسجيله في pubspec.yaml
+                  'assets/images/powerix_logo.png',
                   width: 180,
                   fit: BoxFit.contain,
                 ),
@@ -71,7 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 SizedBox(height: size.height * 0.08),
 
-                // رسالة خطأ
                 if (_error != null)
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -95,13 +91,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                // حقل البريد الإلكتروني
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'البريد الإلكتروني',
+                    labelText: 'Adresse e-mail',
                     labelStyle: TextStyle(color: Colors.white70),
                     prefixIcon: Icon(Icons.email_outlined, color: Colors.white70),
                     filled: true,
@@ -123,13 +118,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 SizedBox(height: 20),
 
-                // حقل كلمة المرور
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'كلمة المرور',
+                    labelText: 'Mot de passe',
                     labelStyle: TextStyle(color: Colors.white70),
                     prefixIcon: Icon(Icons.lock_outline, color: Colors.white70),
                     filled: true,
@@ -151,7 +145,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 SizedBox(height: 32),
 
-                // زر تسجيل الدخول
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -189,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: _isLoading
                         ? CircularProgressIndicator(color: Color(0xFF001F3F))
                         : Text(
-                            'تسجيل الدخول',
+                            'Se connecter',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -201,18 +194,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 SizedBox(height: 24),
 
-                // رابط التسجيل
                 TextButton(
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterScreen()));
                   },
                   child: RichText(
                     text: TextSpan(
-                      text: 'ليس لديك حساب؟ ',
+                      text: 'Pas de compte ? ',
                       style: TextStyle(color: Colors.white70),
                       children: [
                         TextSpan(
-                          text: 'سجل الآن',
+                          text: 'Inscrivez-vous',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

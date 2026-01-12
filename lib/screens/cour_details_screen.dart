@@ -1,5 +1,3 @@
-// lib/screens/cour_details_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -34,7 +32,7 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('تم الاشتراك بنجاح'),
+          content: Text('Inscription réussie'),
           backgroundColor: Colors.green,
         ),
       );
@@ -45,7 +43,7 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('فشل الاشتراك: $e'),
+          content: Text('Échec de l\'inscription : $e'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -60,7 +58,7 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(cour['nom'] ?? 'دورة'),
+        title: Text(cour['nom'] ?? 'Cours'),
         backgroundColor: const Color(0xFF001F3F),
         foregroundColor: Colors.white,
       ),
@@ -81,7 +79,6 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // صورة الدورة
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: CachedNetworkImage(
@@ -104,9 +101,8 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
 
               const SizedBox(height: 24),
 
-              // معلومات أساسية
               Text(
-                cour['nom'] ?? 'غير معروف',
+                cour['nom'] ?? 'Inconnu',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -115,23 +111,22 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'الصالة: ${salle['nom'] ?? 'غير محدد'}',
+                'Salle : ${salle['nom'] ?? 'Non spécifiée'}',
                 style: const TextStyle(color: Colors.white70, fontSize: 18),
               ),
               Text(
-                'الوقت: ${cour['horaire_deb'] ?? ''} - ${cour['horaire_fin'] ?? ''}',
+                'Horaire : ${cour['horaire_deb'] ?? ''} - ${cour['horaire_fin'] ?? ''}',
                 style: const TextStyle(color: Colors.white70, fontSize: 18),
               ),
               Text(
-                'السعة: ${cour['capacite'] ?? '?'} شخص',
+                'Capacité : ${cour['capacite'] ?? '?'} personnes',
                 style: const TextStyle(color: Colors.white70, fontSize: 18),
               ),
 
               const SizedBox(height: 32),
 
-              // قسم الاشتراكات
               const Text(
-                'اختر نوع الاشتراك',
+                'Choisissez le type d\'abonnement',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -142,13 +137,13 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
 
               if (abonnements.isEmpty)
                 const Text(
-                  'لا توجد اشتراكات متاحة لهذه الدورة',
+                  'Aucun abonnement disponible pour ce cours',
                   style: TextStyle(color: Colors.orange, fontSize: 16),
                 ),
 
               ...abonnements.map((ab) {
                 final id = ab['id'];
-                final nom = ab['nom'] ?? 'اشتراك';
+                final nom = ab['nom'] ?? 'Abonnement';
                 final prix = ab['prix'] ?? '0';
                 final duree = ab['duree'] ?? 0;
 
@@ -158,7 +153,7 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: RadioListTile<int>(
                     title: Text(
-                      '$nom • $prix د.م / $duree ${duree == 1 ? 'شهر' : 'أشهر'}',
+                      '$nom • $prix DA / $duree ${duree == 1 ? 'mois' : 'mois'}',
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                     ),
                     value: id,
@@ -173,7 +168,6 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
 
               const SizedBox(height: 40),
 
-              // زر التسجيل
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -181,7 +175,7 @@ class _CourDetailsScreenState extends State<CourDetailsScreen> {
                   onPressed: selectedAbonnementId == null ? null : subscribe,
                   icon: const Icon(Icons.check_circle_outline),
                   label: const Text(
-                    'تأكيد الاشتراك',
+                    'Confirmer l\'inscription',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(

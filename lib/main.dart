@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:flutter/foundation.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -13,7 +13,11 @@ void main() async {
 
   final authProvider = AuthProvider();
   await authProvider.loadAuthData();
-
+  if (kDebugMode) {
+    FlutterError.onError = (details) {
+      FlutterError.dumpErrorToConsole(details);
+    };
+  }
   runApp(
     ChangeNotifierProvider(
       create: (_) => authProvider,

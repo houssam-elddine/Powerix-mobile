@@ -1,5 +1,3 @@
-// lib/screens/profile_edit_screen.dart
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +19,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
-  bool _isPasswordSection = false; // للتبديل بين تحديث البيانات وكلمة المرور
+  bool _isPasswordSection = false;
 
   @override
   void initState() {
@@ -46,19 +44,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body)['data'];
-        auth.updateUser(data); // لو عندك دالة زي دي، أو notifyListeners()
+        auth.updateUser(data);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم تحديث الملف الشخصي بنجاح'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Profil mis à jour avec succès'), backgroundColor: Colors.green),
         );
         Navigator.pop(context);
       } else {
-        final error = json.decode(response.body)['message'] ?? 'فشل التحديث';
+        final error = json.decode(response.body)['message'] ?? 'Échec de la mise à jour';
         throw error;
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.redAccent),
+        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.redAccent),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -68,7 +66,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Future<void> _updatePassword() async {
     if (_newPasswordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('كلمتا المرور غير متطابقتين'), backgroundColor: Colors.redAccent),
+        const SnackBar(content: Text('Les mots de passe ne correspondent pas'), backgroundColor: Colors.redAccent),
       );
       return;
     }
@@ -86,18 +84,18 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم تغيير كلمة المرور بنجاح'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Mot de passe modifié avec succès'), backgroundColor: Colors.green),
         );
         _currentPasswordController.clear();
         _newPasswordController.clear();
         _confirmPasswordController.clear();
       } else {
-        final error = json.decode(response.body)['message'] ?? 'فشل تغيير كلمة المرور';
+        final error = json.decode(response.body)['message'] ?? 'Échec du changement de mot de passe';
         throw error;
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.redAccent),
+        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.redAccent),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -108,7 +106,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isPasswordSection ? 'تغيير كلمة المرور' : 'تعديل الملف الشخصي'),
+        title: Text(_isPasswordSection ? 'Changer le mot de passe' : 'Modifier le profil'),
         backgroundColor: const Color(0xFF001F3F),
         foregroundColor: Colors.white,
         elevation: 6,
@@ -127,39 +125,36 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             key: _formKey,
             child: Column(
               children: [
-                // تبديل بين التحديث العادي وكلمة المرور
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildTabButton('البيانات الشخصية', !_isPasswordSection),
+                    _buildTabButton('Mes informations ', !_isPasswordSection),
                     const SizedBox(width: 20),
-                    _buildTabButton('كلمة المرور', _isPasswordSection),
+                    _buildTabButton('Mot de passe', _isPasswordSection),
                   ],
                 ),
 
                 const SizedBox(height: 30),
 
                 if (!_isPasswordSection) ...[
-                  // تحديث الاسم والإيميل
-                  _buildTextField(_nameController, 'الاسم الكامل', Icons.person),
+                  _buildTextField(_nameController, 'Nom complet', Icons.person),
                   const SizedBox(height: 20),
                   _buildTextField(
                     _emailController,
-                    'البريد الإلكتروني',
+                    'Adresse e-mail',
                     Icons.email,
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 40),
-                  _buildActionButton('حفظ التغييرات', _updateProfile),
+                  _buildActionButton('Enregistrer les modifications', _updateProfile),
                 ] else ...[
-                  // تغيير كلمة المرور
-                  _buildTextField(_currentPasswordController, 'كلمة المرور الحالية', Icons.lock, obscureText: true),
+                  _buildTextField(_currentPasswordController, 'Mot de passe actuel', Icons.lock, obscureText: true),
                   const SizedBox(height: 20),
-                  _buildTextField(_newPasswordController, 'كلمة المرور الجديدة', Icons.lock_outline, obscureText: true),
+                  _buildTextField(_newPasswordController, 'Nouveau mot de passe', Icons.lock_outline, obscureText: true),
                   const SizedBox(height: 20),
-                  _buildTextField(_confirmPasswordController, 'تأكيد كلمة المرور الجديدة', Icons.lock_outline, obscureText: true),
+                  _buildTextField(_confirmPasswordController, 'Confirmer le nouveau mot de passe', Icons.lock_outline, obscureText: true),
                   const SizedBox(height: 40),
-                  _buildActionButton('تغيير كلمة المرور', _updatePassword),
+                  _buildActionButton('Modifier le mot de passe', _updatePassword),
                 ],
               ],
             ),
@@ -175,7 +170,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
         decoration: BoxDecoration(
-          color: isActive ? Colors.white.withValues(alpha: 0.2) : Colors.transparent,
+          color: isActive ? Colors.white.withOpacity(0.2) : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
           border: Border.all(color: Colors.white38),
         ),
@@ -194,15 +189,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.white70),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.1),
+        fillColor: Colors.white.withOpacity(0.1),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.white24)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.white70, width: 2)),
         labelStyle: const TextStyle(color: Colors.white70),
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) return 'هذا الحقل مطلوب';
-        if (label.contains('إلكتروني') && !value.contains('@')) return 'أدخل بريد إلكتروني صالح';
+        if (value == null || value.isEmpty) return 'Ce champ est requis';
+        if (label.contains('e-mail') && !value.contains('@')) return 'Veuillez entrer une adresse e-mail valide';
         return null;
       },
     );

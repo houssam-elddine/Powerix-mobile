@@ -1,13 +1,11 @@
-// lib/screens/client_home.dart
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/auth_provider.dart';
-import 'salle_details_screen.dart'; // سننشئها لاحقًا
-import 'my_inscriptions_screen.dart'; // صفحة اشتراكاتي
-import 'account_screen.dart';         // صفحة الحساب
+import 'salle_details_screen.dart';
+import 'my_inscriptions_screen.dart';
+import 'account_screen.dart';
 
 class ClientHome extends StatefulWidget {
   @override
@@ -45,7 +43,7 @@ class _ClientHomeState extends State<ClientHome> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في تحميل البيانات'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text('Erreur de chargement des données'), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -84,18 +82,17 @@ class _ClientHomeState extends State<ClientHome> {
                   SizedBox(height: 20),
 
                   Text(
-                    'مرحبا بك في POWERIX',
+                    'Bienvenue chez POWERIX',
                     style: TextStyle(color: accentColor, fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'اكتشف صالاتنا ودوراتنا',
+                    'Découvrez nos salles et nos cours',
                     style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
 
                   SizedBox(height: 30),
 
-                  // قسم الصالات - عرض أفقي
-                  Text('الصالات المتاحة', style: TextStyle(color: accentColor, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('Salles disponibles', style: TextStyle(color: accentColor, fontSize: 22, fontWeight: FontWeight.bold)),
                   SizedBox(height: 12),
                   SizedBox(
                     height: 220,
@@ -154,7 +151,7 @@ class _ClientHomeState extends State<ClientHome> {
                                       SizedBox(height: 4),
                                       Text(salle['address'], style: TextStyle(color: Colors.white70, fontSize: 14)),
                                       SizedBox(height: 4),
-                                      Text('سعة: ${salle['capacite']} شخص', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                                      Text('Capacité : ${salle['capacite']} personnes', style: TextStyle(color: Colors.white70, fontSize: 14)),
                                     ],
                                   ),
                                 ),
@@ -174,7 +171,6 @@ class _ClientHomeState extends State<ClientHome> {
         ),
       ),
 
-      // Bottom Navigation Bar
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: primaryColor.withOpacity(0.95),
@@ -187,9 +183,9 @@ class _ClientHomeState extends State<ClientHome> {
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'الرئيسية'),
-            BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: 'اشتراكاتي'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outlined), label: 'الحساب'),
+            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Accueil'),
+            BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: 'Mes inscriptions'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_outlined), label: 'Compte'),
           ],
         ),
       ),

@@ -1,5 +1,3 @@
-// lib/screens/salle_details_screen.dart
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +35,6 @@ class _SalleDetailsScreenState extends State<SalleDetailsScreen> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      // الـ endpoint الصحيح: /salles/{id}
       final response = await auth.apiRequest('salle/${widget.salleId}', 'GET');
 
       if (!mounted) return;
@@ -49,20 +46,20 @@ class _SalleDetailsScreenState extends State<SalleDetailsScreen> {
           final data = jsonResponse['data'];
           setState(() {
             salleData = data;
-            courses = data['cours'] ?? []; // المصفوفة مباشرة داخل data
+            courses = data['cours'] ?? [];
             isLoading = false;
           });
         } else {
-          throw Exception('بيانات غير صالحة');
+          throw Exception('Données invalides');
         }
       } else {
-        throw Exception('فشل في جلب البيانات: ${response.statusCode}');
+        throw Exception('Échec du chargement des données : ${response.statusCode}');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           isLoading = false;
-          errorMessage = 'فشل تحميل تفاصيل الصالة';
+          errorMessage = 'Échec du chargement des détails de la salle';
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage!), backgroundColor: Colors.redAccent),
@@ -75,7 +72,7 @@ class _SalleDetailsScreenState extends State<SalleDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('صالة ${widget.salleName}'),
+        title: Text('Salle ${widget.salleName}'),
         backgroundColor: const Color(0xFF001F3F),
         foregroundColor: Colors.white,
         elevation: 6,
@@ -101,7 +98,7 @@ class _SalleDetailsScreenState extends State<SalleDetailsScreen> {
                         SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: fetchSalleDetails,
-                          child: Text('إعادة المحاولة'),
+                          child: Text('Réessayer'),
                         ),
                       ],
                     ),
@@ -115,7 +112,6 @@ class _SalleDetailsScreenState extends State<SalleDetailsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // صورة الصالة الكبيرة
                           ClipRRect(
                             borderRadius: BorderRadius.circular(20),
                             child: CachedNetworkImage(
@@ -130,23 +126,21 @@ class _SalleDetailsScreenState extends State<SalleDetailsScreen> {
 
                           SizedBox(height: 20),
 
-                          // معلومات الصالة
                           Text(salleData!['nom'], style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
                           SizedBox(height: 8),
                           Row(children: [Icon(Icons.location_on, color: Colors.white70, size: 20), SizedBox(width: 8), Text(salleData!['address'], style: TextStyle(color: Colors.white70, fontSize: 16))]),
                           SizedBox(height: 8),
-                          Row(children: [Icon(Icons.groups, color: Colors.white70, size: 20), SizedBox(width: 8), Text('سعة: ${salleData!['capacite']} شخص', style: TextStyle(color: Colors.white70, fontSize: 16))]),
+                          Row(children: [Icon(Icons.groups, color: Colors.white70, size: 20), SizedBox(width: 8), Text('Capacité : ${salleData!['capacite']} personnes', style: TextStyle(color: Colors.white70, fontSize: 16))]),
 
                           SizedBox(height: 30),
 
-                          // عنوان الدورات
-                          Text('الدورات المتاحة في هذه الصالة', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                          Text('Cours disponibles dans cette salle', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                           SizedBox(height: 12),
 
                           courses.isEmpty
                               ? Center(
                                   child: Text(
-                                    'لا توجد دورات متاحة حالياً',
+                                    'Aucun cours disponible pour le moment',
                                     style: TextStyle(color: Colors.white70, fontSize: 18),
                                   ),
                                 )
@@ -197,10 +191,10 @@ class _SalleDetailsScreenState extends State<SalleDetailsScreen> {
                                                     Text(cour['nom'], style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                                                     const SizedBox(height: 8),
                                                     Text('${cour['horaire_deb']} - ${cour['horaire_fin']}', style: const TextStyle(color: Colors.white70)),
-                                                    Text('سعة: ${cour['capacite']} شخص', style: const TextStyle(color: Colors.white70)),
+                                                    Text('Capacité : ${cour['capacite']} personnes', style: const TextStyle(color: Colors.white70)),
                                                     if (abonnement != null)
                                                       Text(
-                                                        '${abonnement['nom']} • ${abonnement['prix']} د.م',
+                                                        '${abonnement['nom']} • ${abonnement['prix']} DA',
                                                         style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold),
                                                       ),
                                                   ],

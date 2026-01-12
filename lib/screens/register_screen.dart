@@ -1,5 +1,3 @@
-// lib/screens/register_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -50,7 +48,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 SizedBox(height: size.height * 0.06),
 
-                // اللوغو
                 Image.asset(
                   'assets/images/powerix_logo.png',
                   width: 180,
@@ -72,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 SizedBox(height: size.height * 0.06),
 
                 Text(
-                  'إنشاء حساب جديد',
+                  'Créer un nouveau compte',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -82,7 +79,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 SizedBox(height: 30),
 
-                // رسالة خطأ
                 if (_error != null)
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -106,12 +102,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
 
-                // حقل الاسم
                 TextField(
                   controller: _nameController,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'الاسم الكامل',
+                    labelText: 'Nom complet',
                     labelStyle: TextStyle(color: Colors.white70),
                     prefixIcon: Icon(Icons.person_outline, color: Colors.white70),
                     filled: true,
@@ -133,13 +128,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 SizedBox(height: 20),
 
-                // حقل البريد الإلكتروني
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'البريد الإلكتروني',
+                    labelText: 'Adresse e-mail',
                     labelStyle: TextStyle(color: Colors.white70),
                     prefixIcon: Icon(Icons.email_outlined, color: Colors.white70),
                     filled: true,
@@ -161,13 +155,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 SizedBox(height: 20),
 
-                // حقل كلمة المرور
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'كلمة المرور',
+                    labelText: 'Mot de passe',
                     labelStyle: TextStyle(color: Colors.white70),
                     prefixIcon: Icon(Icons.lock_outline, color: Colors.white70),
                     filled: true,
@@ -189,7 +182,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 SizedBox(height: 32),
 
-                // زر التسجيل
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -210,7 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               );
 
                               if (mounted) {
-                                Navigator.pop(context); // العودة إلى تسجيل الدخول بعد التسجيل الناجح
+                                Navigator.pop(context);
                               }
                             } catch (e) {
                               setState(() {
@@ -234,7 +226,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: _isLoading
                         ? CircularProgressIndicator(color: Color(0xFF001F3F))
                         : Text(
-                            'إنشاء الحساب',
+                            'Créer le compte',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -246,16 +238,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 SizedBox(height: 24),
 
-                // رابط العودة إلى تسجيل الدخول
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: RichText(
                     text: TextSpan(
-                      text: 'لديك حساب بالفعل؟ ',
+                      text: 'Déjà un compte ? ',
                       style: TextStyle(color: Colors.white70),
                       children: [
                         TextSpan(
-                          text: 'تسجيل الدخول',
+                          text: 'Se connecter',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

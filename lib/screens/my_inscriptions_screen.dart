@@ -1,5 +1,3 @@
-// lib/screens/my_inscriptions_screen.dart
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,13 +37,13 @@ class _MyInscriptionsScreenState extends State<MyInscriptionsScreen> {
           isLoading = false;
         });
       } else {
-        throw Exception('فشل في تحميل الاشتراكات');
+        throw Exception('Échec du chargement des inscriptions');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           isLoading = false;
-          errorMessage = 'فشل تحميل الاشتراكات';
+          errorMessage = 'Échec du chargement des inscriptions';
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage!), backgroundColor: Colors.redAccent),
@@ -58,7 +56,7 @@ class _MyInscriptionsScreenState extends State<MyInscriptionsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('اشتراكاتي'),
+        title: const Text('Mes inscriptions'),
         backgroundColor: const Color(0xFF001F3F),
         foregroundColor: Colors.white,
         elevation: 6,
@@ -83,7 +81,7 @@ class _MyInscriptionsScreenState extends State<MyInscriptionsScreen> {
                         const SizedBox(height: 16),
                         Text(errorMessage!, style: const TextStyle(color: Colors.white70, fontSize: 18)),
                         const SizedBox(height: 16),
-                        ElevatedButton(onPressed: fetchInscriptions, child: const Text('إعادة المحاولة')),
+                        ElevatedButton(onPressed: fetchInscriptions, child: const Text('Réessayer')),
                       ],
                     ),
                   )
@@ -94,8 +92,8 @@ class _MyInscriptionsScreenState extends State<MyInscriptionsScreen> {
                           children: [
                             Icon(Icons.fitness_center, color: Colors.white38, size: 80),
                             SizedBox(height: 20),
-                            Text('لا توجد اشتراكات حالياً', style: TextStyle(color: Colors.white70, fontSize: 20)),
-                            Text('ابدأ رحلتك الرياضية الآن!', style: TextStyle(color: Colors.white54, fontSize: 16)),
+                            Text('Aucune inscription pour le moment', style: TextStyle(color: Colors.white70, fontSize: 20)),
+                            Text('Commencez votre parcours sportif maintenant !', style: TextStyle(color: Colors.white54, fontSize: 16)),
                           ],
                         ),
                       )
@@ -119,7 +117,6 @@ class _MyInscriptionsScreenState extends State<MyInscriptionsScreen> {
                               ),
                               child: Stack(
                                 children: [
-                                  // صورة الدورة كخلفية
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(20),
                                     child: CachedNetworkImage(
@@ -132,7 +129,6 @@ class _MyInscriptionsScreenState extends State<MyInscriptionsScreen> {
                                       placeholder: (_, __) => Container(color: Colors.grey[800]),
                                     ),
                                   ),
-                                  // المحتوى فوق الصورة
                                   Positioned(
                                     bottom: 0,
                                     left: 0,
@@ -161,7 +157,7 @@ class _MyInscriptionsScreenState extends State<MyInscriptionsScreen> {
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            'الاشتراك: ${abonnement['nom']} • ${abonnement['prix']} د.م',
+                                            'Abonnement : ${abonnement['nom']} • ${abonnement['prix']} DA',
                                             style: const TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold),
                                           ),
                                           const SizedBox(height: 8),
@@ -174,7 +170,7 @@ class _MyInscriptionsScreenState extends State<MyInscriptionsScreen> {
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
-                                                'الحالة: ${ins['etat'] == 'valider' ? 'مؤكد' : 'قيد الانتظار'}',
+                                                'Statut : ${ins['etat'] == 'valider' ? 'Confirmé' : 'En attente'}',
                                                 style: TextStyle(color: ins['etat'] == 'valider' ? Colors.greenAccent : Colors.orangeAccent, fontWeight: FontWeight.w600),
                                               ),
                                             ],
